@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="OpenAudiogram: dependency-free audiogram rendering, browser hearing screening, and printable reports.">
+  <title>OpenAudiogram demo</title>
+  <style>
+    :root{
+      color-scheme:light;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#18353d;
+      background:#eef5f4;
+      --teal:#0f8d82;
+      --deep:#0a5a7a;
+      --ink:#18353d;
+      --muted:#657b80;
+      --line:#cbdcda;
+      --surface:#fff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% 0%,#d8f0ec 0,transparent 34rem),#eef5f4}
+    button,input{font:inherit}
+    .site-header{max-width:1240px;margin:auto;padding:34px 24px 18px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:16px}
+    .brand img{width:58px;height:58px;filter:drop-shadow(0 8px 18px rgba(5,84,86,.17))}
+    .brand h1{font-size:24px;line-height:1;margin:0 0 7px;letter-spacing:-.025em;color:#0b4e59}
+    .brand p{margin:0;color:var(--muted);font-size:14px}
+    .github-link{color:#0b655f;text-decoration:none;font-weight:700;border:1px solid #a9cbc7;border-radius:999px;padding:10px 15px;background:rgba(255,255,255,.68)}
+    .github-link:hover{background:#fff}
+    main{max-width:1240px;margin:auto;padding:18px 24px 56px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,.8fr);gap:22px;align-items:start}
+    .panel{background:rgba(255,255,255,.95);border:1px solid rgba(158,192,188,.62);border-radius:20px;box-shadow:0 18px 45px rgba(32,83,83,.08);overflow:hidden}
+    .panel-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:22px 24px 14px}
+    .eyebrow{text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800;color:#0b7d75;margin-bottom:7px}
+    h2{font-size:19px;margin:0;color:#193a42}
+    .panel-header p{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.5}
+    .chart{padding:0 10px 10px;min-height:420px;display:grid;place-items:center}
+    .chart svg{display:block;width:100%;height:auto;max-height:650px}
+    .controls{padding:4px 24px 24px}
+    .status{background:#f0f7f6;border:1px solid #d4e5e2;border-radius:12px;padding:14px 15px;min-height:70px;display:flex;flex-direction:column;justify-content:center}
+    .status strong{font-size:15px;color:#154a51}
+    .status span{color:var(--muted);font-size:13px;margin-top:4px}
+    .button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    button{border:0;border-radius:11px;padding:12px 14px;cursor:pointer;font-weight:750;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+    button:hover:not(:disabled){transform:translateY(-1px)}
+    button:focus-visible{outline:3px solid rgba(15,141,130,.28);outline-offset:2px}
+    button:disabled{cursor:not-allowed;opacity:.45}
+    .primary{background:linear-gradient(135deg,var(--teal),var(--deep));color:#fff;box-shadow:0 8px 20px rgba(10,102,108,.2)}
+    .response{background:#e7f4f1;color:#0b655f;border:1px solid #bcdad5}
+    .secondary{background:#fff;color:#314e55;border:1px solid #bdcfcd}
+    .full{grid-column:1/-1}
+    .education{padding:20px 24px 24px;border-top:1px solid #e1ebea;background:#fbfdfd}
+    .education h3{font-size:14px;margin:0 0 8px}
+    .education p{font-size:12px;line-height:1.55;color:#60777d;margin:0}
+    .level-key{display:flex;gap:13px;flex-wrap:wrap;padding:0 24px 18px;color:#60777d;font-size:11px}
+    .key-item{display:flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.right-dot{background:#d62f3f}.left-dot{background:#1769aa}
+    .footer-note{max-width:1240px;margin:-34px auto 0;padding:0 24px 42px;color:#6a7e83;font-size:12px;line-height:1.55}
+    @media(max-width:900px){main{grid-template-columns:1fr}.site-header{align-items:flex-start}.github-link{display:none}.chart{min-height:340px}}
+    @media(max-width:520px){.site-header{padding:24px 16px 12px}.brand img{width:50px;height:50px}.brand p{display:none}main{padding:14px 12px 46px}.panel{border-radius:15px}.panel-header,.controls,.education{padding-left:18px;padding-right:18px}.button-row{grid-template-columns:1fr}.full{grid-column:auto}}
+    @media(prefers-reduced-motion:reduce){button{transition:none}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="./docs/logo.svg" width="58" height="58" alt="OpenAudiogram">
+      <div>
+        <h1>OpenAudiogram</h1>
+        <p>Open, dependency-free tools for hearing screening workflows</p>
+      </div>
+    </div>
+    <a class="github-link" href="https://github.com/Nikolai-hearme/open-audiogram">View source</a>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="audiogram-title">
+      <div class="panel-header">
+        <div>
+          <div class="eyebrow">Live SVG renderer</div>
+          <h2 id="audiogram-title">Audiogram</h2>
+          <p>The chart updates with the screening result.</p>
+        </div>
+      </div>
+      <div class="level-key" aria-label="Chart key">
+        <span class="key-item"><span class="dot right-dot"></span>Right ear</span>
+        <span class="key-item"><span class="dot left-dot"></span>Left ear</span>
+      </div>
+      <div id="chart" class="chart" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="screening-title">
+      <div class="panel-header">
+        <div>
+          <div class="eyebrow">Interactive example</div>
+          <h2 id="screening-title">Pure-tone screening</h2>
+          <p>Use headphones in a quiet place. Set volume low before starting.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="status" aria-live="polite">
+          <strong id="status-title">Ready to demonstrate</strong>
+          <span id="status-detail">Sample thresholds are shown on the chart.</span>
+        </div>
+        <div class="button-row">
+          <button id="start" class="primary full" type="button">Start screening</button>
+          <button id="heard" class="response" type="button" disabled>I hear it</button>
+          <button id="nothing" class="secondary" type="button" disabled>Nothing</button>
+          <button id="report" class="secondary full" type="button">Open report</button>
+        </div>
+      </div>
+      <div class="education">
+        <h3>Screening, not diagnosis</h3>
+        <p>Browser output is approximate until the exact device and headphones are acoustically calibrated. This demonstration cannot identify or rule out hearing loss. Seek a qualified hearing professional if you have concerns, sudden changes, pain, dizziness, tinnitus, or asymmetric hearing.</p>
+      </div>
+    </section>
+  </main>
+  <p class="footer-note">OpenAudiogram implements common audiogram conventions and a modified 10-down/5-up threshold search. Clinical programs must define calibration, environment, referral, consent, privacy, and regulatory controls for their intended use.</p>
+
+  <script type="module">
+    import {
+      ScreeningSession,
+      TonePlayer,
+      openReport,
+      renderAudiogram,
+    } from "./src/index.js";
+
+    const sample = {
+      right: {
+        air: [
+          { freq: 250, level: 15 },
+          { freq: 500, level: 20 },
+          { freq: 1000, level: 25 },
+          { freq: 2000, level: 35 },
+          { freq: 4000, level: 45, masked: true },
+          { freq: 8000, level: 50 },
+        ],
+        bone: [
+          { freq: 500, level: 15 },
+          { freq: 1000, level: 20 },
+          { freq: 2000, level: 30 },
+          { freq: 4000, level: 40 },
+        ],
+      },
+      left: {
+        air: [
+          { freq: 250, level: 10 },
+          { freq: 500, level: 15 },
+          { freq: 1000, level: 20 },
+          { freq: 2000, level: 20 },
+          { freq: 4000, level: 30 },
+          { freq: 8000, level: 35, noResponse: true },
+        ],
+      },
+    };
+
+    const chart = document.querySelector("#chart");
+    const start = document.querySelector("#start");
+    const heard = document.querySelector("#heard");
+    const nothing = document.querySelector("#nothing");
+    const report = document.querySelector("#report");
+    const statusTitle = document.querySelector("#status-title");
+    const statusDetail = document.querySelector("#status-detail");
+    const player = new TonePlayer({ durationMs: 650 });
+    let currentData = sample;
+    let resolveResponse = null;
+
+    renderAudiogram(chart, currentData, { title: "Example hearing thresholds" });
+
+    function setResponseEnabled(enabled) {
+      heard.disabled = !enabled;
+      nothing.disabled = !enabled;
+    }
+
+    heard.addEventListener("click", () => {
+      if (resolveResponse) resolveResponse(true);
+    });
+
+    nothing.addEventListener("click", () => {
+      if (resolveResponse) resolveResponse(false);
+    });
+
+    start.addEventListener("click", async () => {
+      start.disabled = true;
+      report.disabled = true;
+      statusTitle.textContent = "Starting screening";
+      statusDetail.textContent = "Keep the headphones in place and listen for a soft tone.";
+
+      const session = new ScreeningSession({
+        onPresent: async ({ ear, freq, level }) => {
+          setResponseEnabled(false);
+          statusTitle.textContent = `Playing ${freq} Hz in the ${ear} ear`;
+          statusDetail.textContent = `Approximate presentation level: ${level} dB HL`;
+          await player.present({ ear, freq, level });
+          statusTitle.textContent = "Did you hear the tone?";
+          statusDetail.textContent = `${ear[0].toUpperCase() + ear.slice(1)} ear, ${freq} Hz`;
+          setResponseEnabled(true);
+          return new Promise((resolve) => {
+            resolveResponse = (response) => {
+              resolveResponse = null;
+              setResponseEnabled(false);
+              resolve(response);
+            };
+          });
+        },
+      });
+
+      try {
+        currentData = await session.run();
+        renderAudiogram(chart, currentData, { title: "Screening thresholds" });
+        statusTitle.textContent = "Screening complete";
+        statusDetail.textContent = "Review the chart and open the printable report.";
+        start.textContent = "Run screening again";
+      } catch (error) {
+        statusTitle.textContent = "Screening stopped";
+        statusDetail.textContent = error instanceof Error ? error.message : String(error);
+      } finally {
+        setResponseEnabled(false);
+        start.disabled = false;
+        report.disabled = false;
+      }
+    });
+
+    report.addEventListener("click", () => {
+      openReport(currentData, {
+        title: "OpenAudiogram screening report",
+        patientName: "Demo patient",
+        clinic: "OpenAudiogram demonstration",
+        notes: "Demonstration data only. Device-specific calibration was not performed.",
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "open-audiogram",
+  "version": "1.0.0",
+  "description": "Zero-dependency audiogram rendering, browser hearing screening, and printable reports",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./audiogram": "./src/audiogram.js",
+    "./screening": "./src/screening.js",
+    "./report": "./src/report.js"
+  },
+  "files": [
+    "src",
+    "docs/logo.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "npx serve .",
+    "test": "node --test",
+    "build:standalone": "node scripts/build-standalone.mjs"
+  },
+  "keywords": [
+    "audiogram",
+    "audiology",
+    "hearing",
+    "screening",
+    "web-audio",
+    "svg"
+  ],
+  "author": "Nikolai Schramenko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}
