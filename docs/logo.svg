@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">OpenAudiogram logo</title>
+  <desc id="desc">Audiogram grid with a descending red and blue hearing threshold trace.</desc>
+  <defs>
+    <linearGradient id="background" x1="16" y1="10" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f8d82"/>
+      <stop offset="1" stop-color="#0a5a7a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#063f4f" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="27" fill="url(#background)" filter="url(#shadow)"/>
+  <g opacity=".2" stroke="#fff" stroke-width="1">
+    <path d="M25 31H105M25 49H105M25 67H105M25 85H105M25 103H105"/>
+    <path d="M25 25V105M45 25V105M65 25V105M85 25V105M105 25V105"/>
+  </g>
+  <path d="M27 40L46 48L65 61L85 75L104 91" fill="none" stroke="#fff" stroke-opacity=".78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <g fill="none" stroke="#f04b56" stroke-width="4">
+    <circle cx="27" cy="40" r="7"/>
+    <circle cx="65" cy="61" r="7"/>
+    <circle cx="104" cy="91" r="7"/>
+  </g>
+  <g stroke="#8bd4ff" stroke-width="4" stroke-linecap="round">
+    <path d="M40 42L52 54M52 42L40 54"/>
+    <path d="M79 69L91 81M91 69L79 81"/>
+  </g>
+</svg>

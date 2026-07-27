@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="OpenAudiogram: dependency-free audiogram rendering, browser hearing screening, and printable reports.">
+  <title>OpenAudiogram demo</title>
+  <style>
+    :root{
+      color-scheme:light;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:#18353d;
+      background:#eef5f4;
+      --teal:#0f8d82;
+      --deep:#0a5a7a;
+      --ink:#18353d;
+      --muted:#657b80;
+      --line:#cbdcda;
+      --surface:#fff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at 10% 0%,#d8f0ec 0,transparent 34rem),#eef5f4}
+    button,input{font:inherit}
+    .site-header{max-width:1240px;margin:auto;padding:34px 24px 18px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+    .brand{display:flex;align-items:center;gap:16px}
+    .brand img{width:58px;height:58px;filter:drop-shadow(0 8px 18px rgba(5,84,86,.17))}
+    .brand h1{font-size:24px;line-height:1;margin:0 0 7px;letter-spacing:-.025em;color:#0b4e59}
+    .brand p{margin:0;color:var(--muted);font-size:14px}
+    .github-link{color:#0b655f;text-decoration:none;font-weight:700;border:1px solid #a9cbc7;border-radius:999px;padding:10px 15px;background:rgba(255,255,255,.68)}
+    .github-link:hover{background:#fff}
+    main{max-width:1240px;margin:auto;padding:18px 24px 56px;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(310px,.8fr);gap:22px;align-items:start}
+    .panel{background:rgba(255,255,255,.95);border:1px solid rgba(158,192,188,.62);border-radius:20px;box-shadow:0 18px 45px rgba(32,83,83,.08);overflow:hidden}
+    .panel-header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;padding:22px 24px 14px}
+    .eyebrow{text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800;color:#0b7d75;margin-bottom:7px}
+    h2{font-size:19px;margin:0;color:#193a42}
+    .panel-header p{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.5}
+    .chart{padding:0 10px 10px;min-height:420px;display:grid;place-items:center}
+    .chart svg{display:block;width:100%;height:auto;max-height:650px}
+    .controls{padding:4px 24px 24px}
+    .status{background:#f0f7f6;border:1px solid #d4e5e2;border-radius:12px;padding:14px 15px;min-height:70px;display:flex;flex-direction:column;justify-content:center}
+    .status strong{font-size:15px;color:#154a51}
+    .status span{color:var(--muted);font-size:13px;margin-top:4px}
+    .button-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    button{border:0;border-radius:11px;padding:12px 14px;cursor:pointer;font-weight:750;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+    button:hover:not(:disabled){transform:translateY(-1px)}
+    button:focus-visible{outline:3px solid rgba(15,141,130,.28);outline-offset:2px}
+    button:disabled{cursor:not-allowed;opacity:.45}
+    .primary{background:linear-gradient(135deg,var(--teal),var(--deep));color:#fff;box-shadow:0 8px 20px rgba(10,102,108,.2)}
+    .response{background:#e7f4f1;color:#0b655f;border:1px solid #bcdad5}
+    .secondary{background:#fff;color:#314e55;border:1px solid #bdcfcd}
+    .full{grid-column:1/-1}
+    .education{padding:20px 24px 24px;border-top:1px solid #e1ebea;background:#fbfdfd}
+    .education h3{font-size:14px;margin:0 0 8px}
+    .education p{font-size:12px;line-height:1.55;color:#60777d;margin:0}
+    .level-key{display:flex;gap:13px;flex-wrap:wrap;padding:0 24px 18px;color:#60777d;font-size:11px}
+    .key-item{display:flex;align-items:center;gap:6px}.dot{width:8px;height:8px;border-radius:50%}.right-dot{background:#d62f3f}.left-dot{background:#1769aa}
+    .footer-note{max-width:1240px;margin:-34px auto 0;padding:0 24px 42px;color:#6a7e83;font-size:12px;line-height:1.55}
+    @media(max-width:900px){main{grid-template-columns:1fr}.site-header{align-items:flex-start}.github-link{display:none}.chart{min-height:340px}}
+    @media(max-width:520px){.site-header{padding:24px 16px 12px}.brand img{width:50px;height:50px}.brand p{display:none}main{padding:14px 12px 46px}.panel{border-radius:15px}.panel-header,.controls,.education{padding-left:18px;padding-right:18px}.button-row{grid-template-columns:1fr}.full{grid-column:auto}}
+    @media(prefers-reduced-motion:reduce){button{transition:none}}
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22128%22%20height%3D%22128%22%20viewBox%3D%220%200%20128%20128%22%20role%3D%22img%22%20aria-labelledby%3D%22title%20desc%22%3E%0A%20%20%3Ctitle%20id%3D%22title%22%3EOpenAudiogram%20logo%3C%2Ftitle%3E%0A%20%20%3Cdesc%20id%3D%22desc%22%3EAudiogram%20grid%20with%20a%20descending%20red%20and%20blue%20hearing%20threshold%20trace.%3C%2Fdesc%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22background%22%20x1%3D%2216%22%20y1%3D%2210%22%20x2%3D%22112%22%20y2%3D%22118%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%0A%20%20%20%20%20%20%3Cstop%20stop-color%3D%22%230f8d82%22%2F%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230a5a7a%22%2F%3E%0A%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%20%20%3Cfilter%20id%3D%22shadow%22%20x%3D%22-20%25%22%20y%3D%22-20%25%22%20width%3D%22140%25%22%20height%3D%22140%25%22%3E%0A%20%20%20%20%20%20%3CfeDropShadow%20dx%3D%220%22%20dy%3D%223%22%20stdDeviation%3D%224%22%20flood-color%3D%22%23063f4f%22%20flood-opacity%3D%22.24%22%2F%3E%0A%20%20%20%20%3C%2Ffilter%3E%0A%20%20%3C%2Fdefs%3E%0A%20%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%22116%22%20height%3D%22116%22%20rx%3D%2227%22%20fill%3D%22url(%23background)%22%20filter%3D%22url(%23shadow)%22%2F%3E%0A%20%20%3Cg%20opacity%3D%22.2%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M25%2031H105M25%2049H105M25%2067H105M25%2085H105M25%20103H105%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M25%2025V105M45%2025V105M65%2025V105M85%2025V105M105%2025V105%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Cpath%20d%3D%22M27%2040L46%2048L65%2061L85%2075L104%2091%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-opacity%3D%22.78%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%0A%20%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f04b56%22%20stroke-width%3D%224%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2227%22%20cy%3D%2240%22%20r%3D%227%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%2265%22%20cy%3D%2261%22%20r%3D%227%22%2F%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22104%22%20cy%3D%2291%22%20r%3D%227%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%20%20%3Cg%20stroke%3D%22%238bd4ff%22%20stroke-width%3D%224%22%20stroke-linecap%3D%22round%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M40%2042L52%2054M52%2042L40%2054%22%2F%3E%0A%20%20%20%20%3Cpath%20d%3D%22M79%2069L91%2081M91%2069L79%2081%22%2F%3E%0A%20%20%3C%2Fg%3E%0A%3C%2Fsvg%3E%0A" width="58" height="58" alt="OpenAudiogram">
+      <div>
+        <h1>OpenAudiogram</h1>
+        <p>Open, dependency-free tools for hearing screening workflows</p>
+      </div>
+    </div>
+    <a class="github-link" href="https://github.com/Nikolai-hearme/open-audiogram">View source</a>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="audiogram-title">
+      <div class="panel-header">
+        <div>
+          <div class="eyebrow">Live SVG renderer</div>
+          <h2 id="audiogram-title">Audiogram</h2>
+          <p>The chart updates with the screening result.</p>
+        </div>
+      </div>
+      <div class="level-key" aria-label="Chart key">
+        <span class="key-item"><span class="dot right-dot"></span>Right ear</span>
+        <span class="key-item"><span class="dot left-dot"></span>Left ear</span>
+      </div>
+      <div id="chart" class="chart" aria-live="polite"></div>
+    </section>
+
+    <section class="panel" aria-labelledby="screening-title">
+      <div class="panel-header">
+        <div>
+          <div class="eyebrow">Interactive example</div>
+          <h2 id="screening-title">Pure-tone screening</h2>
+          <p>Use headphones in a quiet place. Set volume low before starting.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="status" aria-live="polite">
+          <strong id="status-title">Ready to demonstrate</strong>
+          <span id="status-detail">Sample thresholds are shown on the chart.</span>
+        </div>
+        <div class="button-row">
+          <button id="start" class="primary full" type="button">Start screening</button>
+          <button id="heard" class="response" type="button" disabled>I hear it</button>
+          <button id="nothing" class="secondary" type="button" disabled>Nothing</button>
+          <button id="report" class="secondary full" type="button">Open report</button>
+        </div>
+      </div>
+      <div class="education">
+        <h3>Screening, not diagnosis</h3>
+        <p>Browser output is approximate until the exact device and headphones are acoustically calibrated. This demonstration cannot identify or rule out hearing loss. Seek a qualified hearing professional if you have concerns, sudden changes, pain, dizziness, tinnitus, or asymmetric hearing.</p>
+      </div>
+    </section>
+  </main>
+  <p class="footer-note">OpenAudiogram implements common audiogram conventions and a modified 10-down/5-up threshold search. Clinical programs must define calibration, environment, referral, consent, privacy, and regulatory controls for their intended use.</p>
+
+  <script type="module">
+/**
+ * Frequencies conventionally displayed on a diagnostic audiogram.
+ * @type {readonly number[]}
+ */
+const OCTAVE_FREQUENCIES = Object.freeze([
+  125, 250, 500, 1000, 2000, 4000, 8000,
+]);
+
+/**
+ * Hearing-loss classifications used by this package.
+ *
+ * These descriptive bands are for communication and screening summaries only;
+ * they do not establish a diagnosis.
+ */
+const LOSS_BANDS = Object.freeze([
+  Object.freeze({ name: "Normal", min: -10, max: 25, color: "#e8f7f2" }),
+  Object.freeze({ name: "Mild", min: 26, max: 40, color: "#f3f8df" }),
+  Object.freeze({ name: "Moderate", min: 41, max: 55, color: "#fff4cc" }),
+  Object.freeze({ name: "Mod-severe", min: 56, max: 70, color: "#ffe4bf" }),
+  Object.freeze({ name: "Severe", min: 71, max: 90, color: "#ffd6cf" }),
+  Object.freeze({ name: "Profound", min: 91, max: 120, color: "#efc8d4" }),
+]);
+
+const DEFAULTS = Object.freeze({
+  width: 760,
+  height: 560,
+  minLevel: -10,
+  maxLevel: 120,
+  title: "Pure-tone audiogram",
+  showLegend: true,
+  showBands: true,
+});
+
+const NS = "http://www.w3.org/2000/svg";
+const MARGIN = Object.freeze({ top: 58, right: 116, bottom: 66, left: 72 });
+const EAR_STYLE = Object.freeze({
+  right: Object.freeze({ color: "#d62f3f", label: "Right ear" }),
+  left: Object.freeze({ color: "#1769aa", label: "Left ear" }),
+});
+
+function number(value, fallback) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function escapeXML(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
+function normalizeOptions(options = {}) {
+  const minLevel = number(options.minLevel, DEFAULTS.minLevel);
+  const maxLevel = Math.max(minLevel + 10, number(options.maxLevel, DEFAULTS.maxLevel));
+  return {
+    ...DEFAULTS,
+    ...options,
+    width: Math.max(420, number(options.width, DEFAULTS.width)),
+    height: Math.max(360, number(options.height, DEFAULTS.height)),
+    minLevel,
+    maxLevel,
+    title: options.title == null ? DEFAULTS.title : String(options.title),
+  };
+}
+
+function plotGeometry(options) {
+  return {
+    left: MARGIN.left,
+    top: MARGIN.top,
+    width: options.width - MARGIN.left - MARGIN.right,
+    height: options.height - MARGIN.top - MARGIN.bottom,
+  };
+}
+
+function xForFrequency(freq, plot) {
+  const octaves = Math.log2(freq / OCTAVE_FREQUENCIES[0]);
+  return plot.left + (octaves / (OCTAVE_FREQUENCIES.length - 1)) * plot.width;
+}
+
+function yForLevel(level, plot, options) {
+  return (
+    plot.top +
+    ((level - options.minLevel) / (options.maxLevel - options.minLevel)) *
+      plot.height
+  );
+}
+
+function isPoint(point) {
+  const freq = Number(point?.freq);
+  const level = Number(point?.level);
+  return (
+    Number.isFinite(freq) &&
+    Number.isFinite(level) &&
+    freq >= OCTAVE_FREQUENCIES[0] &&
+    freq <= OCTAVE_FREQUENCIES.at(-1)
+  );
+}
+
+function pointsFor(data, ear, conduction) {
+  const points = data?.[ear]?.[conduction];
+  if (!Array.isArray(points)) return [];
+  return points
+    .filter(isPoint)
+    .map((point) => ({
+      freq: Number(point.freq),
+      level: Number(point.level),
+      masked: Boolean(point.masked),
+      noResponse: Boolean(point.noResponse),
+    }))
+    .sort((a, b) => a.freq - b.freq);
+}
+
+function markerMarkup(ear, conduction, point, x, y) {
+  const color = EAR_STYLE[ear].color;
+  const masked = point.masked;
+  const common = `class="oa-marker" fill="white" stroke="${color}" stroke-width="3" vector-effect="non-scaling-stroke"`;
+  let marker;
+
+  if (conduction === "bone") {
+    const direction = ear === "right" ? -1 : 1;
+    const a = x + direction * 8;
+    const b = x - direction * 5;
+    marker = `<polyline ${common} fill="none" points="${a},${y - 9} ${b},${y} ${a},${y + 9}"/>`;
+  } else if (masked && ear === "right") {
+    marker = `<polygon ${common} points="${x},${y - 10} ${x - 10},${y + 8} ${x + 10},${y + 8}"/>`;
+  } else if (masked) {
+    marker = `<rect ${common} x="${x - 8}" y="${y - 8}" width="16" height="16"/>`;
+  } else if (ear === "right") {
+    marker = `<circle ${common} cx="${x}" cy="${y}" r="8"/>`;
+  } else {
+    marker = `<path class="oa-marker" d="M ${x - 8} ${y - 8} L ${x + 8} ${y + 8} M ${x + 8} ${y - 8} L ${x - 8} ${y + 8}" fill="none" stroke="${color}" stroke-width="3" vector-effect="non-scaling-stroke"/>`;
+  }
+
+  const arrow = point.noResponse
+    ? `<path class="oa-no-response" d="M ${x + 9} ${y + 8} L ${x + 20} ${y + 19} M ${x + 20} ${y + 19} L ${x + 12} ${y + 18} M ${x + 20} ${y + 19} L ${x + 19} ${y + 11}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
+    : "";
+
+  return `${marker}${arrow}`;
+}
+
+function lineMarkup(ear, conduction, points, plot, options) {
+  if (points.length < 2) return "";
+  const color = EAR_STYLE[ear].color;
+  const dash = conduction === "bone" ? ' stroke-dasharray="5 5"' : "";
+  const coordinates = points
+    .map(
+      (point) =>
+        `${xForFrequency(point.freq, plot).toFixed(2)},${yForLevel(
+          point.level,
+          plot,
+          options,
+        ).toFixed(2)}`,
+    )
+    .join(" ");
+  return `<polyline class="oa-threshold-line oa-${ear}-${conduction}" points="${coordinates}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"${dash}/>`;
+}
+
+function bandMarkup(plot, options) {
+  if (!options.showBands) return "";
+  return LOSS_BANDS.map((band) => {
+    const start = Math.max(options.minLevel, band.min);
+    const end = Math.min(options.maxLevel, band.max);
+    if (start > end) return "";
+    const y = yForLevel(start, plot, options);
+    const bottom = yForLevel(end, plot, options);
+    return `<rect x="${plot.left}" y="${y.toFixed(2)}" width="${plot.width}" height="${Math.max(0, bottom - y).toFixed(2)}" fill="${band.color}"/>`;
+  }).join("");
+}
+
+function gridMarkup(plot, options) {
+  const horizontal = [];
+  for (let level = Math.ceil(options.minLevel / 10) * 10; level <= options.maxLevel; level += 10) {
+    const y = yForLevel(level, plot, options);
+    horizontal.push(
+      `<line x1="${plot.left}" y1="${y.toFixed(2)}" x2="${plot.left + plot.width}" y2="${y.toFixed(2)}" class="oa-grid"/>`,
+      `<text x="${plot.left - 12}" y="${(y + 4).toFixed(2)}" class="oa-axis-label" text-anchor="end">${level}</text>`,
+    );
+  }
+
+  const vertical = OCTAVE_FREQUENCIES.flatMap((freq) => {
+    const x = xForFrequency(freq, plot);
+    const label = freq >= 1000 ? `${freq / 1000}k` : String(freq);
+    return [
+      `<line x1="${x.toFixed(2)}" y1="${plot.top}" x2="${x.toFixed(2)}" y2="${plot.top + plot.height}" class="oa-grid"/>`,
+      `<text x="${x.toFixed(2)}" y="${plot.top + plot.height + 25}" class="oa-axis-label" text-anchor="middle">${label}</text>`,
+    ];
+  });
+
+  return [...horizontal, ...vertical].join("");
+}
+
+function legendMarkup(options) {
+  if (!options.showLegend) return "";
+  const x = options.width - MARGIN.right + 20;
+  const entries = [
+    ["#d62f3f", "O", "Right air"],
+    ["#1769aa", "X", "Left air"],
+    ["#d62f3f", "△", "Right masked"],
+    ["#1769aa", "□", "Left masked"],
+    ["#4b5563", "↘", "No response"],
+  ];
+  return entries
+    .map(
+      ([color, symbol, label], index) =>
+        `<text x="${x}" y="${plotLegendY(index)}" fill="${color}" class="oa-legend-symbol">${symbol}</text><text x="${x + 26}" y="${plotLegendY(index)}" class="oa-legend-label">${label}</text>`,
+    )
+    .join("");
+}
+
+function plotLegendY(index) {
+  return MARGIN.top + 18 + index * 27;
+}
+
+/**
+ * Calculate the three-frequency pure-tone average for one ear.
+ *
+ * @param {Array<{freq:number, level:number}>|{air:Array<{freq:number, level:number}>}} ear
+ *   Air-conduction points, or an ear object containing an `air` array.
+ * @returns {number|null} Mean threshold at 500, 1000 and 2000 Hz, rounded to one
+ *   decimal place. Returns `null` if any required frequency is absent.
+ */
+function pureToneAverage(ear) {
+  const points = Array.isArray(ear) ? ear : ear?.air;
+  if (!Array.isArray(points)) return null;
+  const levels = [500, 1000, 2000].map((freq) => {
+    const point = points.find(
+      (candidate) =>
+        Number(candidate?.freq) === freq &&
+        Number.isFinite(Number(candidate?.level)),
+    );
+    return point ? Number(point.level) : null;
+  });
+  if (levels.includes(null)) return null;
+  return Math.round((levels.reduce((sum, level) => sum + level, 0) / 3) * 10) / 10;
+}
+
+/**
+ * Classify a hearing level using the exported descriptive loss bands.
+ *
+ * @param {number|null|undefined} level Hearing level in dB HL.
+ * @returns {string} Band name, or `"Unknown"` for a missing/non-numeric value.
+ */
+function classifyLoss(level) {
+  if (level === null || level === undefined || level === "") return "Unknown";
+  const numeric = Number(level);
+  if (!Number.isFinite(numeric)) return "Unknown";
+  if (numeric <= 25) return "Normal";
+  if (numeric <= 40) return "Mild";
+  if (numeric <= 55) return "Moderate";
+  if (numeric <= 70) return "Mod-severe";
+  if (numeric <= 90) return "Severe";
+  return "Profound";
+}
+
+/**
+ * Create a standards-aware audiogram as an SVG string.
+ *
+ * The chart uses an octave/logarithmic frequency axis and an inverted dB HL
+ * axis. Symbols follow common audiology conventions. Consumers remain
+ * responsible for validating data and clinical use in their jurisdiction.
+ *
+ * @param {{right?: {air?: Array, bone?: Array}, left?: {air?: Array, bone?: Array}}} data
+ * @param {{width?:number, height?:number, minLevel?:number, maxLevel?:number, title?:string, showLegend?:boolean, showBands?:boolean}} [options]
+ * @returns {string} Complete, accessible SVG markup.
+ */
+function audiogramSVG(data = {}, options = {}) {
+  const settings = normalizeOptions(options);
+  const plot = plotGeometry(settings);
+  const series = [
+    ["right", "air"],
+    ["left", "air"],
+    ["right", "bone"],
+    ["left", "bone"],
+  ];
+  const normalized = new Map(
+    series.map(([ear, conduction]) => [
+      `${ear}:${conduction}`,
+      pointsFor(data, ear, conduction),
+    ]),
+  );
+
+  const lines = series
+    .map(([ear, conduction]) =>
+      lineMarkup(
+        ear,
+        conduction,
+        normalized.get(`${ear}:${conduction}`),
+        plot,
+        settings,
+      ),
+    )
+    .join("");
+
+  const markers = series
+    .flatMap(([ear, conduction]) =>
+      normalized.get(`${ear}:${conduction}`).map((point) => {
+        const x = xForFrequency(point.freq, plot);
+        const y = yForLevel(point.level, plot, settings);
+        const label = `${EAR_STYLE[ear].label}, ${conduction} conduction, ${point.freq} Hz, ${point.level} dB HL${point.masked ? ", masked" : ""}${point.noResponse ? ", no response" : ""}`;
+        return `<g class="oa-point oa-${ear} oa-${conduction}" data-ear="${ear}" data-conduction="${conduction}" data-frequency="${point.freq}" data-level="${point.level}" role="img" aria-label="${escapeXML(label)}">${markerMarkup(ear, conduction, point, x, y)}</g>`;
+      }),
+    )
+    .join("");
+
+  const title = escapeXML(settings.title);
+  return `<svg xmlns="${NS}" viewBox="0 0 ${settings.width} ${settings.height}" width="${settings.width}" height="${settings.height}" role="img" aria-labelledby="oa-title oa-description" class="open-audiogram">
+  <title id="oa-title">${title}</title>
+  <desc id="oa-description">Audiogram plotting frequency in hertz against hearing level in decibels HL.</desc>
+  <style>
+    .open-audiogram{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#fff}
+    .oa-grid{stroke:#8fa3ad;stroke-width:1;stroke-opacity:.42;shape-rendering:crispEdges}
+    .oa-border{fill:none;stroke:#52656e;stroke-width:1.3}
+    .oa-axis-label,.oa-legend-label{fill:#30454e;font-size:13px}
+    .oa-axis-title{fill:#1d333c;font-size:14px;font-weight:650}
+    .oa-chart-title{fill:#102f3a;font-size:19px;font-weight:700}
+    .oa-legend-symbol{font-size:20px;font-weight:700}
+    .oa-legend-label{font-size:12px}
+    .oa-point{pointer-events:none}
+  </style>
+  <rect width="100%" height="100%" fill="white"/>
+  <text id="oa-visible-title" x="${settings.width / 2}" y="29" text-anchor="middle" class="oa-chart-title">${title}</text>
+  ${bandMarkup(plot, settings)}
+  ${gridMarkup(plot, settings)}
+  <rect x="${plot.left}" y="${plot.top}" width="${plot.width}" height="${plot.height}" class="oa-border"/>
+  <text x="${plot.left + plot.width / 2}" y="${settings.height - 16}" text-anchor="middle" class="oa-axis-title">Frequency (Hz)</text>
+  <text x="19" y="${plot.top + plot.height / 2}" text-anchor="middle" transform="rotate(-90 19 ${plot.top + plot.height / 2})" class="oa-axis-title">Hearing level (dB HL)</text>
+  ${lines}
+  ${markers}
+  ${legendMarkup(settings)}
+</svg>`;
+}
+
+/**
+ * Render an audiogram into a browser DOM element.
+ *
+ * @param {Element|string} el Element or CSS selector.
+ * @param {object} data Audiogram data.
+ * @param {object} [options] Rendering options accepted by {@link audiogramSVG}.
+ * @returns {Element} The target element.
+ */
+function renderAudiogram(el, data, options) {
+  if (typeof document === "undefined") {
+    throw new Error("renderAudiogram() requires a browser DOM.");
+  }
+  const target = typeof el === "string" ? document.querySelector(el) : el;
+  if (!target || typeof target.replaceChildren !== "function") {
+    throw new TypeError("renderAudiogram() requires a valid DOM element or selector.");
+  }
+  const template = document.createElement("template");
+  template.innerHTML = audiogramSVG(data, options).trim();
+  target.replaceChildren(template.content.firstElementChild);
+  return target;
+}
+
+
+/**
+ * Suggested browser-output calibration anchors in dBFS for a nominal 0 dB HL
+ * tone. These conservative defaults are approximations, not device calibration.
+ */
+const DEFAULT_CALIBRATION = Object.freeze({
+  125: -82,
+  250: -80,
+  500: -78,
+  1000: -76,
+  2000: -77,
+  4000: -79,
+  8000: -83,
+});
+
+/** @type {readonly number[]} */
+const SCREENING_FREQUENCIES = Object.freeze([
+  1000, 2000, 4000, 8000, 500, 250,
+]);
+
+const DEFAULT_SESSION_OPTIONS = Object.freeze({
+  ears: Object.freeze(["right", "left"]),
+  frequencies: SCREENING_FREQUENCIES,
+  startLevel: 30,
+  minLevel: -10,
+  maxLevel: 90,
+  maxPresentations: 80,
+});
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function amplitudeForDbfs(dbfs) {
+  return 10 ** (dbfs / 20);
+}
+
+function raisedCosine(length, rising) {
+  return Float32Array.from({ length }, (_, index) => {
+    const phase = index / (length - 1);
+    const value = 0.5 - 0.5 * Math.cos(Math.PI * phase);
+    return rising ? value : 1 - value;
+  });
+}
+
+/**
+ * Web Audio pure-tone player with stereo ear routing and click-free ramps.
+ *
+ * Browser audio output is not calibrated medical equipment. Pass a
+ * device-specific `calibration` table after measuring the complete
+ * computer/headphone signal chain.
+ */
+class TonePlayer {
+  /**
+   * @param {{calibration?:Record<number,number>, durationMs?:number, rampMs?:number, maxDbfs?:number, audioContext?:AudioContext}} [options]
+   */
+  constructor(options = {}) {
+    this.calibration = { ...DEFAULT_CALIBRATION, ...options.calibration };
+    this.durationMs = Number(options.durationMs ?? 700);
+    this.rampMs = Number(options.rampMs ?? 25);
+    this.maxDbfs = Number(options.maxDbfs ?? -6);
+    this.context = options.audioContext ?? null;
+  }
+
+  /** @returns {AudioContext} Lazily created AudioContext. */
+  getContext() {
+    if (this.context) return this.context;
+    const AudioContextClass =
+      globalThis.AudioContext ?? globalThis.webkitAudioContext;
+    if (!AudioContextClass) {
+      throw new Error("TonePlayer requires the Web Audio API.");
+    }
+    this.context = new AudioContextClass();
+    return this.context;
+  }
+
+  /**
+   * Convert an approximate dB HL request to output amplitude.
+   *
+   * @param {number} freq Frequency in hertz.
+   * @param {number} level Requested approximate dB HL.
+   * @returns {number} Linear amplitude in the range 0–1.
+   */
+  amplitude(freq, level) {
+    const anchor =
+      this.calibration[freq] ??
+      this.calibration[String(freq)] ??
+      DEFAULT_CALIBRATION[1000];
+    return amplitudeForDbfs(Math.min(this.maxDbfs, Number(anchor) + Number(level)));
+  }
+
+  /**
+   * Present one pure tone.
+   *
+   * @param {{ear:"right"|"left", freq:number, level:number, durationMs?:number}} presentation
+   * @returns {Promise<void>} Resolves after the tone and ramp finish.
+   */
+  async present({ ear, freq, level, durationMs = this.durationMs }) {
+    if (ear !== "right" && ear !== "left") {
+      throw new TypeError('ear must be "right" or "left".');
+    }
+    const frequency = Number(freq);
+    const hearingLevel = Number(level);
+    if (!Number.isFinite(frequency) || frequency <= 0) {
+      throw new TypeError("freq must be a positive number.");
+    }
+    if (!Number.isFinite(hearingLevel)) {
+      throw new TypeError("level must be a finite number.");
+    }
+
+    const context = this.getContext();
+    if (context.state === "suspended") await context.resume();
+
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const panner =
+      typeof context.createStereoPanner === "function"
+        ? context.createStereoPanner()
+        : null;
+    const now = context.currentTime;
+    const seconds = Math.max(0.1, durationMs / 1000);
+    const ramp = Math.min(seconds / 2, Math.max(0.005, this.rampMs / 1000));
+    const peak = this.amplitude(frequency, hearingLevel);
+    const attack = raisedCosine(32, true);
+    const release = raisedCosine(32, false);
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(frequency, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.setValueCurveAtTime(
+      Float32Array.from(attack, (value) => value * peak),
+      now,
+      ramp,
+    );
+    gain.gain.setValueAtTime(peak, now + ramp);
+    gain.gain.setValueCurveAtTime(
+      Float32Array.from(release, (value) => value * peak),
+      now + seconds - ramp,
+      ramp,
+    );
+    gain.gain.setValueAtTime(0, now + seconds);
+
+    oscillator.connect(gain);
+    if (panner) {
+      panner.pan.setValueAtTime(ear === "right" ? 1 : -1, now);
+      gain.connect(panner);
+      panner.connect(context.destination);
+    } else {
+      gain.connect(context.destination);
+    }
+
+    oscillator.start(now);
+    oscillator.stop(now + seconds + 0.01);
+    await new Promise((resolve) => {
+      oscillator.addEventListener("ended", resolve, { once: true });
+    });
+    oscillator.disconnect();
+    gain.disconnect();
+    panner?.disconnect();
+  }
+
+  /** Close the lazily created audio context. */
+  async close() {
+    if (this.context && this.context.state !== "closed") {
+      await this.context.close();
+    }
+    this.context = null;
+  }
+}
+
+/**
+ * Modified Hughson–Westlake threshold search.
+ *
+ * The injected callback owns presentation timing and response collection,
+ * which keeps the algorithm testable and allows any UI to host it.
+ */
+class ScreeningSession {
+  /**
+   * @param {{onPresent:(presentation:{ear:"right"|"left",freq:number,level:number})=>Promise<boolean>|boolean, ears?:Array<"right"|"left">, frequencies?:number[], startLevel?:number, minLevel?:number, maxLevel?:number, maxPresentations?:number}} options
+   */
+  constructor(options = {}) {
+    if (typeof options.onPresent !== "function") {
+      throw new TypeError("ScreeningSession requires an onPresent callback.");
+    }
+    this.onPresent = options.onPresent;
+    this.ears = [...(options.ears ?? DEFAULT_SESSION_OPTIONS.ears)];
+    this.frequencies = [
+      ...(options.frequencies ?? DEFAULT_SESSION_OPTIONS.frequencies),
+    ];
+    this.startLevel = Number(
+      options.startLevel ?? DEFAULT_SESSION_OPTIONS.startLevel,
+    );
+    this.minLevel = Number(options.minLevel ?? DEFAULT_SESSION_OPTIONS.minLevel);
+    this.maxLevel = Number(options.maxLevel ?? DEFAULT_SESSION_OPTIONS.maxLevel);
+    this.maxPresentations = Number(
+      options.maxPresentations ?? DEFAULT_SESSION_OPTIONS.maxPresentations,
+    );
+    this.cancelled = false;
+
+    if (
+      this.ears.some((ear) => ear !== "right" && ear !== "left") ||
+      !this.frequencies.every((freq) => Number.isFinite(Number(freq)))
+    ) {
+      throw new TypeError("Invalid ears or frequencies.");
+    }
+  }
+
+  /** Stop the session before the next presentation. */
+  cancel() {
+    this.cancelled = true;
+  }
+
+  async response(ear, freq, level) {
+    if (this.cancelled) throw new Error("Screening session cancelled.");
+    return Boolean(await this.onPresent({ ear, freq, level }));
+  }
+
+  async thresholdFor(ear, freq) {
+    let level = clamp(this.startLevel, this.minLevel, this.maxLevel);
+    let direction = "initial";
+    let presentations = 0;
+    const ascending = new Map();
+
+    while (presentations < this.maxPresentations) {
+      const heard = await this.response(ear, freq, level);
+      presentations += 1;
+
+      if (direction === "ascending") {
+        const trial = ascending.get(level) ?? { attempts: 0, responses: 0 };
+        trial.attempts += 1;
+        if (heard) trial.responses += 1;
+        ascending.set(level, trial);
+        if (trial.responses >= 2 && trial.attempts <= 3) {
+          return { freq, level };
+        }
+      }
+
+      if (heard) {
+        if (level <= this.minLevel) return { freq, level: this.minLevel };
+        level = Math.max(this.minLevel, level - 10);
+        direction = "descending";
+      } else {
+        if (level >= this.maxLevel) {
+          return { freq, level: this.maxLevel, noResponse: true };
+        }
+        level = Math.min(this.maxLevel, level + 5);
+        direction = "ascending";
+      }
+    }
+
+    return { freq, level, noResponse: true };
+  }
+
+  /**
+   * Run the full screening in the configured frequency order.
+   *
+   * @returns {Promise<{right:{air:Array},left:{air:Array}}>} Data accepted by
+   *   `audiogramSVG()`.
+   */
+  async run() {
+    this.cancelled = false;
+    const result = { right: { air: [] }, left: { air: [] } };
+    for (const ear of this.ears) {
+      for (const frequency of this.frequencies) {
+        const point = await this.thresholdFor(ear, Number(frequency));
+        result[ear].air.push(point);
+      }
+    }
+    return result;
+  }
+}
+
+
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function display(value, fallback = "Not provided") {
+  const text = String(value ?? "").trim();
+  return text || fallback;
+}
+
+/**
+ * Summarise one ear for a printable report.
+ *
+ * @param {{air?:Array<{freq:number,level:number}>}} ear
+ * @returns {{pta:number|null, classification:string, measuredFrequencies:number}}
+ */
+function summariseEar(ear = {}) {
+  const pta = pureToneAverage(ear);
+  return {
+    pta,
+    classification: classifyLoss(pta),
+    measuredFrequencies: Array.isArray(ear.air) ? ear.air.length : 0,
+  };
+}
+
+/**
+ * Create a self-contained, printable clinic report.
+ *
+ * @param {object} data Audiogram data.
+ * @param {{patientName?:string, patientId?:string, date?:string, clinician?:string, clinic?:string, notes?:string, title?:string}} [meta]
+ * @returns {string} Complete HTML document.
+ */
+function reportHTML(data = {}, meta = {}) {
+  const right = summariseEar(data.right);
+  const left = summariseEar(data.left);
+  const date = display(meta.date, new Date().toISOString().slice(0, 10));
+  const title = display(meta.title, "Hearing screening report");
+  const svg = audiogramSVG(data, {
+    width: 760,
+    height: 550,
+    title: "Pure-tone screening audiogram",
+  });
+  const pta = (summary) =>
+    summary.pta === null ? "Incomplete" : `${summary.pta.toFixed(1)} dB HL`;
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${escapeHTML(title)}</title>
+  <style>
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17333a;background:#edf5f4}
+    *{box-sizing:border-box}
+    body{margin:0;padding:32px}
+    main{max-width:960px;margin:auto;background:#fff;padding:42px;border-radius:18px;box-shadow:0 16px 48px rgba(21,63,68,.12)}
+    header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;border-bottom:3px solid #0f8d82;padding-bottom:20px}
+    h1{font-size:28px;margin:0 0 5px;color:#0a5a63}
+    h2{font-size:16px;margin:0 0 14px;color:#31555c;text-transform:uppercase;letter-spacing:.08em}
+    p{line-height:1.55}
+    .muted{color:#60757b;font-size:13px}
+    .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px 28px;margin:28px 0}
+    .field{border-bottom:1px solid #cbd9d9;padding-bottom:8px}
+    .label{display:block;color:#667d82;font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+    .value{font-weight:650}
+    .summary{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0}
+    .ear{border:1px solid #cbdcdb;border-radius:12px;padding:18px;background:#f8fbfa}
+    .ear.right{border-top:4px solid #d62f3f}.ear.left{border-top:4px solid #1769aa}
+    .ear strong{font-size:20px}.ear span{display:block;color:#5d7479;margin-top:5px}
+    .chart{margin:16px 0}.chart svg{width:100%;height:auto}
+    .notes{min-height:58px;white-space:pre-wrap;border:1px solid #d7e2e1;border-radius:9px;padding:12px}
+    .disclaimer{margin-top:24px;padding:14px 16px;background:#f2f7f6;border-left:4px solid #0f8d82;font-size:12px;color:#50696f}
+    button{position:fixed;right:24px;top:24px;border:0;border-radius:999px;background:#0b776f;color:#fff;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(9,94,89,.24)}
+    @media(max-width:680px){body{padding:0}main{padding:24px;border-radius:0}.meta,.summary{grid-template-columns:1fr}button{position:static;margin:0 0 20px}}
+    @media print{@page{size:A4;margin:12mm}body{padding:0;background:#fff}main{padding:0;box-shadow:none;max-width:none}button{display:none}.chart{break-inside:avoid}.disclaimer{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <button type="button" onclick="window.print()">Print report</button>
+  <main>
+    <header>
+      <div><h1>${escapeHTML(title)}</h1><div class="muted">Generated by OpenAudiogram</div></div>
+      <div><span class="label">Report date</span><span class="value">${escapeHTML(date)}</span></div>
+    </header>
+    <section class="meta" aria-label="Patient and clinic details">
+      <div class="field"><span class="label">Patient</span><span class="value">${escapeHTML(display(meta.patientName))}</span></div>
+      <div class="field"><span class="label">Patient ID</span><span class="value">${escapeHTML(display(meta.patientId))}</span></div>
+      <div class="field"><span class="label">Clinic</span><span class="value">${escapeHTML(display(meta.clinic))}</span></div>
+      <div class="field"><span class="label">Clinician</span><span class="value">${escapeHTML(display(meta.clinician))}</span></div>
+    </section>
+    <h2>Pure-tone average</h2>
+    <section class="summary">
+      <div class="ear right"><span class="label">Right ear</span><strong>${pta(right)}</strong><span>${escapeHTML(right.classification)}</span></div>
+      <div class="ear left"><span class="label">Left ear</span><strong>${pta(left)}</strong><span>${escapeHTML(left.classification)}</span></div>
+    </section>
+    <section class="chart">${svg}</section>
+    <h2>Notes</h2>
+    <div class="notes">${escapeHTML(display(meta.notes, "No notes."))}</div>
+    <p class="disclaimer"><strong>Screening notice:</strong> This report documents a hearing screening. Browser audio output requires device-specific calibration and is not a substitute for a diagnostic audiological evaluation. Refer results and clinical concerns to a qualified hearing professional.</p>
+  </main>
+</body>
+</html>`;
+}
+
+/**
+ * Open a generated report in a new browser tab.
+ *
+ * @param {object} data Audiogram data.
+ * @param {object} [meta] Report metadata.
+ * @returns {Window} Opened browser window.
+ */
+function openReport(data, meta) {
+  if (typeof window === "undefined") {
+    throw new Error("openReport() requires a browser window.");
+  }
+  const reportWindow = window.open("", "_blank");
+  if (!reportWindow) {
+    throw new Error("The report window was blocked by the browser.");
+  }
+  reportWindow.document.open();
+  reportWindow.document.write(reportHTML(data, meta));
+  reportWindow.document.close();
+  return reportWindow;
+}
+
+
+    const sample = {
+      right: {
+        air: [
+          { freq: 250, level: 15 },
+          { freq: 500, level: 20 },
+          { freq: 1000, level: 25 },
+          { freq: 2000, level: 35 },
+          { freq: 4000, level: 45, masked: true },
+          { freq: 8000, level: 50 },
+        ],
+        bone: [
+          { freq: 500, level: 15 },
+          { freq: 1000, level: 20 },
+          { freq: 2000, level: 30 },
+          { freq: 4000, level: 40 },
+        ],
+      },
+      left: {
+        air: [
+          { freq: 250, level: 10 },
+          { freq: 500, level: 15 },
+          { freq: 1000, level: 20 },
+          { freq: 2000, level: 20 },
+          { freq: 4000, level: 30 },
+          { freq: 8000, level: 35, noResponse: true },
+        ],
+      },
+    };
+
+    const chart = document.querySelector("#chart");
+    const start = document.querySelector("#start");
+    const heard = document.querySelector("#heard");
+    const nothing = document.querySelector("#nothing");
+    const report = document.querySelector("#report");
+    const statusTitle = document.querySelector("#status-title");
+    const statusDetail = document.querySelector("#status-detail");
+    const player = new TonePlayer({ durationMs: 650 });
+    let currentData = sample;
+    let resolveResponse = null;
+
+    renderAudiogram(chart, currentData, { title: "Example hearing thresholds" });
+
+    function setResponseEnabled(enabled) {
+      heard.disabled = !enabled;
+      nothing.disabled = !enabled;
+    }
+
+    heard.addEventListener("click", () => {
+      if (resolveResponse) resolveResponse(true);
+    });
+
+    nothing.addEventListener("click", () => {
+      if (resolveResponse) resolveResponse(false);
+    });
+
+    start.addEventListener("click", async () => {
+      start.disabled = true;
+      report.disabled = true;
+      statusTitle.textContent = "Starting screening";
+      statusDetail.textContent = "Keep the headphones in place and listen for a soft tone.";
+
+      const session = new ScreeningSession({
+        onPresent: async ({ ear, freq, level }) => {
+          setResponseEnabled(false);
+          statusTitle.textContent = `Playing ${freq} Hz in the ${ear} ear`;
+          statusDetail.textContent = `Approximate presentation level: ${level} dB HL`;
+          await player.present({ ear, freq, level });
+          statusTitle.textContent = "Did you hear the tone?";
+          statusDetail.textContent = `${ear[0].toUpperCase() + ear.slice(1)} ear, ${freq} Hz`;
+          setResponseEnabled(true);
+          return new Promise((resolve) => {
+            resolveResponse = (response) => {
+              resolveResponse = null;
+              setResponseEnabled(false);
+              resolve(response);
+            };
+          });
+        },
+      });
+
+      try {
+        currentData = await session.run();
+        renderAudiogram(chart, currentData, { title: "Screening thresholds" });
+        statusTitle.textContent = "Screening complete";
+        statusDetail.textContent = "Review the chart and open the printable report.";
+        start.textContent = "Run screening again";
+      } catch (error) {
+        statusTitle.textContent = "Screening stopped";
+        statusDetail.textContent = error instanceof Error ? error.message : String(error);
+      } finally {
+        setResponseEnabled(false);
+        start.disabled = false;
+        report.disabled = false;
+      }
+    });
+
+    report.addEventListener("click", () => {
+      openReport(currentData, {
+        title: "OpenAudiogram screening report",
+        patientName: "Demo patient",
+        clinic: "OpenAudiogram demonstration",
+        notes: "Demonstration data only. Device-specific calibration was not performed.",
+      });
+    });
+  </script>
+</body>
+</html>
